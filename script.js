@@ -62,8 +62,8 @@ function preload() {
   playerFallAnimation = loadAnimation("assets/img/kunoichi/Jump__009.png");
 
   // load monster animations
-  monsterWalkAnimation = loadAnimation("assets/img/monster/frame-1.png", "assets/img/monster/frame-10.png");
-  monsterDefeatImage = loadImage("assets/img/monster/defeat-frame-3.png");
+  monsterWalkAnimation = loadAnimation("assets/img/monster/Walk1.png","assets/img/monster/Walk2.png","assets/img/monster/Walk3.png","assets/img/monster/Walk4.png","assets/img/monster/Walk5.png","assets/img/monster/Walk6.png","assets/img/monster/Walk7.png","assets/img/monster/Walk8.png","assets/img/monster/Walk9.png","assets/img/monster/Walk10.png");
+  monsterDefeatImage = loadImage("assets/img/monster/Dead7.png");
 
   // load other game object images
   collectableImage = loadImage("assets/img/kunoichi/Kunai.png");
@@ -106,6 +106,8 @@ function buildLevel() {
   platforms = new Group();
   monsters = new Group();
   collectables = new Group();
+  firstOfPlatform = new Group();
+  lastOfPlatform = new Group();
 
   // create platforms, monsters, and any other game objects
   // best method is to draw sprites from left to right on the screen
@@ -123,24 +125,27 @@ function buildLevel() {
   
   createPlatform(2050, 630, 7);
   createCollectable(2450, 265);
-  //createMonster(500, 600, -1);
+  createMonster(2200, 530, -1);
   
   createPlatform(3150, 590, 5);
   createCollectable(3300, 240);
-  //createMonster(500, 600, -1);
-  /*
-  createPlatform(50, 690, 5);
-  createCollectable(300, 340);
-  createMonster(500, 600, -1);
+  createMonster(3400, 500, -1);
+  
+  createPlatform(4000, 700, 5);
+  createCollectable(4250, 330);
+  createMonster(4300, 600, -1);
+  
+  createPlatform(4750, 650, 3);
+  //createCollectable(300, 340);
+  createMonster(4850, 580, -1);
 
-  createPlatform(50, 690, 5);
-  createCollectable(300, 340);
-  createMonster(500, 600, -1);
+  createPlatform(5150, 560, 5);
+  //createCollectable(300, 340);
+  createMonster(5300, 480, -1);
 
-  createPlatform(50, 690, 5);
-  createCollectable(300, 340);
-  createMonster(500, 600, -1);
-  */
+  createPlatform(5900, 480, 4);
+  goal = createSprite(6100,360);
+  goal.addImage(goalImage);
 }
 
 // Creates a player sprite and adds animations and a collider to it
@@ -162,6 +167,8 @@ function createPlatform(x, y, len) {
   var last = createSprite(x + ((len - 1) * 128), y, 0, 0);
   first.addToGroup(platforms);
   last.addToGroup(platforms);
+  first.addToGroup(firstOfPlatform);
+  last.addToGroup(lastOfPlatform);
   first.addImage(platformImageFirst);
   last.addImage(platformImageLast);
   //first.debug = true;
@@ -183,8 +190,8 @@ function createMonster(x, y, velocity) {
   monster.addToGroup(monsters);
   monster.addAnimation("walk", monsterWalkAnimation).loop = true;
   monster.changeAnimation("walk");
-  monster.scale = 0.25;
-  monster.setCollider("rectangle", 0, 7, 300, 160);
+  monster.scale = 0.22;
+  monster.setCollider("rectangle", 0, 7, 200, 370);
   monster.velocity.x = velocity;
   if(monster.velocity.x <= 0) {
     monster.mirrorX(-1);
@@ -234,6 +241,9 @@ function checkCollisions() {
   monsters.collide(platforms,platformCollision);
   player.collide(monsters,playerMonsterCollision);
   player.overlap(collectables,getCollectable);
+  monsters.overlap(firstOfPlatform,flipMonsterR);
+  monsters.overlap(lastOfPlatform,flipMonsterL);
+  player.overlap(goal,executeWin);
 }
 
 // Callback function that runs when the player or a monster collides with a
@@ -259,7 +269,7 @@ function playerMonsterCollision(player, monster) {
     var defeatedMonster = createSprite(monster.position.x, monster.position.y, 0, 0);
     defeatedMonster.addImage(monsterDefeatImage);
     defeatedMonster.mirrorX(monster.mirrorX());
-    defeatedMonster.scale = 0.25;
+    defeatedMonster.scale = 0.22;
     defeatedMonster.life = 40;
     currentJumpTime = MAX_JUMP_TIME;
     currentJumpForce = DEFAULT_JUMP_FORCE;
@@ -405,7 +415,8 @@ function updateDisplay() {
 // Anything can happen here, but the most important thing is that we call resetGame()
 // after a short delay.
 function executeWin() {
-
+  noLoop();
+  setTimeout(resetGame,1000);
 }
 
 // Called when the player has lost the game (e.g., fallen off a cliff or touched
@@ -416,3 +427,12 @@ function executeLoss() {
   setTimeout(resetGame,1000);
 }
 
+function flipMonsterR(sprite,platform){
+  sprite.mirrorX(1);
+  sprite.velocity.x = 1;
+}
+
+function flipMonsterL(sprite,platform){
+  sprite.mirrorX(-1);
+  sprite.velocity.x = -1;
+}
